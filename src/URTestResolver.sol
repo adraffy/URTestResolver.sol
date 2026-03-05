@@ -18,7 +18,7 @@ contract URTestResolver is
     IAddrResolver,
     ITextResolver
 {
-    error UnreachableResolverProfile(bytes4);
+    error UnsupportedResolverProfile(bytes4);
 
     address public immutable UR;
 
@@ -75,7 +75,7 @@ contract URTestResolver is
         if (ok) {
             return v;
         } else {
-            revert UnreachableResolverProfile(bytes4(data));
+            revert UnsupportedResolverProfile(bytes4(data));
         }
     }
 
