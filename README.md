@@ -2,7 +2,7 @@
 
 ### Deployments
 
- * Mainnet: [`0x4504889E3A93437F78A3B86C4D601d8275C4cF4C`](https://etherscan.io/address/0x4504889E3A93437F78A3B86C4D601d8275C4cF4C#code)
+ * Mainnet: [`0x638A5679a8404Db40565d2e0d1c45692aa5feabA`](https://etherscan.io/address/0x638A5679a8404Db40565d2e0d1c45692aa5feabA#code)
 
 ### Setup
 

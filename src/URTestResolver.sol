@@ -45,14 +45,14 @@ contract URTestResolver is
         bytes32,
         uint256 coinType
     ) external pure returns (bytes memory) {
-        return _addr(coinType, false);
+        return _addr(false, coinType);
     }
 
     function text(
         bytes32,
         string calldata key
     ) external pure returns (string memory) {
-        return _text(key, false);
+        return _text(false, key);
     }
 
     function resolve(
@@ -63,18 +63,18 @@ contract URTestResolver is
             return abi.encode(_addr(true));
         } else if (bytes4(data) == IAddressResolver.addr.selector) {
             (, uint256 coinType) = abi.decode(data[4:], (bytes32, uint256));
-            return abi.encode(_addr(coinType, true));
+            return abi.encode(_addr(true, coinType));
         } else if (bytes4(data) == ITextResolver.text.selector) {
             (, string memory key) = abi.decode(data[4:], (bytes32, string));
-            return abi.encode(_text(key, true));
+            return abi.encode(_text(true, key));
         } else {
             revert UnsupportedResolverProfile(bytes4(data));
         }
     }
 
     function _text(
-        string memory key,
-        bool ok
+        bool ok,
+        string memory key
     ) internal pure returns (string memory) {
         if (keccak256(bytes(key)) == keccak256(bytes("description"))) {
             return
@@ -87,20 +87,18 @@ contract URTestResolver is
     }
 
     function _addr(bool ok) internal pure returns (address) {
-        return address(bytes20(_addr(COIN_TYPE_ETH, ok)));
+        return
+            ok
+                ? 0x2222222222222222222222222222222222222222
+                : 0x1111111111111111111111111111111111111111;
     }
 
     function _addr(
-        uint256 coinType,
-        bool ok
+        bool ok,
+        uint256 coinType
     ) internal pure returns (bytes memory) {
         if (ENSIP19.isEVMCoinType(coinType)) {
-            return
-                abi.encodePacked(
-                    ok
-                        ? 0x2222222222222222222222222222222222222222
-                        : 0x1111111111111111111111111111111111111111
-                );
+            return abi.encodePacked(_addr(ok));
         } else {
             return "";
         }
