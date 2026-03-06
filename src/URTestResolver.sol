@@ -37,52 +37,72 @@ contract URTestResolver is
                     interfaceId == type(ITextResolver).interfaceId);
     }
 
-    function addr(bytes32) public view returns (address payable) {
-        return payable(_addr());
+    function addr(bytes32) external pure returns (address payable) {
+        return payable(_addr(false));
     }
 
     function addr(
         bytes32,
         uint256 coinType
-    ) external view returns (bytes memory) {
-        if (ENSIP19.isEVMCoinType(coinType)) {
-            return abi.encodePacked(_addr());
-        } else {
-            return new bytes(0);
-        }
+    ) external pure returns (bytes memory) {
+        return _addr(coinType, false);
     }
 
     function text(
         bytes32,
         string calldata key
-    ) external view returns (string memory) {
-        if (keccak256(bytes(key)) == keccak256(bytes("description"))) {
-            if (msg.sender == address(this)) {
-                return unicode"✅️ Universal Resolver";
-            } else {
-                return unicode"❌️ Universal Resolver";
-            }
-        } else {
-            return "";
-        }
+    ) external pure returns (string memory) {
+        return _text(key, false);
     }
 
     function resolve(
         bytes calldata,
         bytes calldata data
-    ) external view returns (bytes memory) {
-        (bool ok, bytes memory v) = address(this).staticcall(data);
-        if (ok) {
-            return v;
+    ) external pure returns (bytes memory) {
+        if (bytes4(data) == IAddrResolver.addr.selector) {
+            return abi.encode(_addr(true));
+        } else if (bytes4(data) == IAddressResolver.addr.selector) {
+            (, uint256 coinType) = abi.decode(data[4:], (bytes32, uint256));
+            return abi.encode(_addr(coinType, true));
+        } else if (bytes4(data) == ITextResolver.text.selector) {
+            (, string memory key) = abi.decode(data[4:], (bytes32, string));
+            return abi.encode(_text(key, true));
         } else {
             revert UnsupportedResolverProfile(bytes4(data));
         }
     }
 
-    function _addr() internal view returns (address) {
-        return
-            msg.sender == address(this)
-                ? 0x2222222222222222222222222222222222222222
-                : 0x1111111111111111111111111111111111111111;
+    function _text(
+        string memory key,
+        bool ok
+    ) internal pure returns (string memory) {
+        if (keccak256(bytes(key)) == keccak256(bytes("description"))) {
+            return
+                ok
+                    ? unicode"✅️ Universal Resolver"
+                    : unicode"❌️ Universal Resolver";
+        } else {
+            return "";
+        }
+    }
+
+    function _addr(bool ok) internal pure returns (address) {
+        return address(bytes20(_addr(COIN_TYPE_ETH, ok)));
+    }
+
+    function _addr(
+        uint256 coinType,
+        bool ok
+    ) internal pure returns (bytes memory) {
+        if (ENSIP19.isEVMCoinType(coinType)) {
+            return
+                abi.encodePacked(
+                    ok
+                        ? 0x2222222222222222222222222222222222222222
+                        : 0x1111111111111111111111111111111111111111
+                );
+        } else {
+            return "";
+        }
     }
 }
